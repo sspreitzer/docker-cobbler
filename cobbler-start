@@ -1,0 +1,23 @@
+#!/bin/bash
+
+IP=$(ip a s eth0|grep 'inet '|egrep -o '[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}\.[[:digit:]]{1,3}')
+
+sed -i "s/^server: .*$/server: ${IP}/" /etc/cobbler/settings
+sed -i "s/^next_server: .*$/next_server: ${IP}/" /etc/cobbler/settings
+
+make-ssl-cert generate-default-snakeoil --force-overwrite
+
+/etc/init.d/tftpd-hpa start
+/etc/init.d/cobbler start
+/etc/init.d/apache2 start
+
+cobbler get-loaders
+cobbler sync
+
+echo "Web user: cobbler"
+echo "Web pass: <empty>"
+
+while true; do
+	sleep 60
+done
+
